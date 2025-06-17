@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Alta de Alumno</title>
+</head>
+<body>
+  <h2>Dar de Alta un Alumno</h2>
+  <form action="/alta" method="POST">
+    <label>No. Control:</label><br>
+    <input type="text" name="no_control" required><br><br>
+
+    <label>Nombre:</label><br>
+    <input type="text" name="nombre" required><br><br>
+
+    <label>Carrera:</label><br>
+    <input type="text" name="carrera" required><br><br>
+
+    <label>Semestre:</label><br>
+    <input type="number" name="semestre" required><br><br>
+
+    <label>Correo:</label><br>
+    <input type="email" name="correo" required><br><br>
+
+    <label>Edad:</label><br>
+    <input type="number" name="edad" required><br><br>
+
+    <label>Generación:</label><br>
+    <input type="number" name="generacion" required><br><br>
+
+    <button type="submit">Guardar</button>
+  </form>
+
+  <br>
+  <a href="/index.html">← Volver al Menú</a>
+</body>
+</html>
+
