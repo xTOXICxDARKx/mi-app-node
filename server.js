@@ -1,23 +1,31 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient } = require('mongodb');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
-const uri = 'mongodb+srv://xTOXICxDARKx:715600toxic@cluster0.tne5sfn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-
-const client = new MongoClient(uri);
+const client = new MongoClient(MONGO_URI);
+let db;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+async function conectarDB() {
+  try {
+    await client.connect();
+    db = client.db('Escuela');
+    console.log('✅ Conectado a MongoDB');
+  } catch (err) {
+    console.error('❌ Error al conectar a MongoDB:', err);
+  }
+}
+
 // VISUALIZAR TODOS LOS ALUMNOS
 app.get('/visualizar', async (req, res) => {
   try {
-    await client.connect();
-    const db = client.db('Escuela');
     const alumnos = await db.collection('Alumno').find().toArray();
 
     let html = `
@@ -67,58 +75,46 @@ app.get('/visualizar', async (req, res) => {
 
   } catch (error) {
     res.status(500).send('Error al obtener los alumnos');
-  } finally {
-    await client.close();
   }
 });
 
-// ALTA DE ALUMNO
+// ALTA
 app.post('/alta', async (req, res) => {
-  const datos = req.body;
   try {
-    await client.connect();
-    const db = client.db('Escuela');
-    await db.collection('Alumno').insertOne(datos);
+    await db.collection('Alumno').insertOne(req.body);
     res.redirect('/visualizar');
   } catch (error) {
     res.status(500).send('Error al dar de alta');
-  } finally {
-    await client.close();
   }
 });
 
-// BAJA DE ALUMNO
+// BAJA
 app.post('/baja', async (req, res) => {
   const { no_control } = req.body;
   try {
-    await client.connect();
-    const db = client.db('Escuela');
     await db.collection('Alumno').deleteOne({ no_control });
     res.redirect('/visualizar');
   } catch (error) {
     res.status(500).send('Error al dar de baja');
-  } finally {
-    await client.close();
   }
 });
 
-// ACTUALIZAR ALUMNO
+// ACTUALIZAR
 app.post('/actualizar', async (req, res) => {
   const { no_control, campo, nuevo_valor } = req.body;
   try {
-    await client.connect();
-    const db = client.db('Escuela');
     const updateData = { $set: { [campo]: isNaN(nuevo_valor) ? nuevo_valor : parseInt(nuevo_valor) } };
     await db.collection('Alumno').updateOne({ no_control }, updateData);
     res.redirect('/visualizar');
   } catch (error) {
     res.status(500).send('Error al actualizar');
-  } finally {
-    await client.close();
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🟢 Servidor corriendo en http://localhost:${PORT}`);
+// Iniciar servidor después de conectar
+conectarDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🟢 Servidor corriendo en http://localhost:${PORT}`);
+  });
 });
 
